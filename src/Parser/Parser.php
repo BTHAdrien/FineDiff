@@ -218,11 +218,19 @@ class Parser implements ParserInterface
 
             // find longest copy operation for the current segments
             $best_copy_length = 0;
-
-            $from_base_fragment_index = $from_segment_start;
             $cached_array_keys_for_current_segment = [];
 
-            while ($from_base_fragment_index < $from_segment_end) {
+            $from_fragment_keys = array_keys($from_fragments);
+
+            foreach ($from_fragment_keys as $from_base_fragment_index) {
+                if ($from_base_fragment_index < $from_segment_start) {
+                    continue;
+                }
+
+                if ($from_base_fragment_index >= $from_segment_end) {
+                    break;
+                }
+
                 $from_base_fragment        = $from_fragments[$from_base_fragment_index];
                 $from_base_fragment_length = mb_strlen($from_base_fragment);
 
@@ -276,7 +284,11 @@ class Parser implements ParserInterface
                             break;
                         }
 
-                        if ($from_fragments[$fragment_from_index] !== $to_fragments[$fragment_to_index]) {
+                        if (
+                            !isset($from_fragments[$fragment_from_index]) ||
+                            !isset($to_fragments[$fragment_to_index]) ||
+                            $from_fragments[$fragment_from_index] !== $to_fragments[$fragment_to_index]
+                        ) {
                             break;
                         }
 
@@ -290,8 +302,6 @@ class Parser implements ParserInterface
                         $best_to_start    = $to_base_fragment_index;
                     }
                 }
-
-                $from_base_fragment_index += mb_strlen($from_base_fragment);
 
                 // If match is larger than half segment size, no point trying to find better
                 // @todo: Really?
